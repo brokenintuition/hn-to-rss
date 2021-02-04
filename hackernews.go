@@ -43,7 +43,7 @@ func getFirstPage() []hnLink {
 }
 
 func retrieveLinks(pages []int) []hnLink {
-	result := make([]hnLink, len(pages))
+	var result []hnLink
 
 	for _, page := range pages {
 

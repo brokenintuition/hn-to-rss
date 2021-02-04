@@ -2,16 +2,26 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 )
 
-func main() {
-	fmt.Println("Requesting top stories")
+func hn(w http.ResponseWriter, req *http.Request) {
+	log.Println("Request received")
 
 	fetchedPages := getFirstPage()
+	rssFeed, err := RssFromHNItems(fetchedPages)
 
-	for _, link := range fetchedPages {
-		fmt.Printf("%s %s\n", link.title, link.url)
+	if err != nil {
+		log.Printf("Error processing request: %s\n", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	fmt.Println("Finished")
+	fmt.Fprintf(w, string(rssFeed))
+}
+
+func main() {
+	http.HandleFunc("/", hn)
+
+	http.ListenAndServe(":8081", nil)
 }
