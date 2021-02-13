@@ -21,13 +21,14 @@ type Channel struct {
 type Item struct {
 	Title string `xml:"title"'`
 	Link  string `xml:"link"`
+	Guid  string `xml:"guid"`
 }
 
 func RssFromHNItems(pages []hnLink) ([]byte, error) {
 	var items []Item
 
 	for _, link := range pages {
-		item := Item{Title: link.title, Link: link.url}
+		item := Item{Title: link.title, Link: link.url, Guid: link.guid}
 		items = append(items, item)
 	}
 
@@ -41,5 +42,4 @@ func RssFromHNItems(pages []hnLink) ([]byte, error) {
 	rss := rss{Channel: channel, Version: "2.0"}
 
 	return xml.MarshalIndent(rss, "", "   ")
-	//return xml.Marshal(rss)
 }

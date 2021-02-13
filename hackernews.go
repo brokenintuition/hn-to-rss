@@ -11,12 +11,14 @@ import (
 
 const hnTopStories = "https://hacker-news.firebaseio.com/v0/topstories.json"
 const hnStoryURL = "https://hacker-news.firebaseio.com/v0/item/%d.json"
+const hnPageURL = "https://news.ycombinator.com/item?id=%d"
 const hnPageSize = 30
 
 type hnLink struct {
 	title string
 	time  int
 	url   string
+	guid  string
 }
 
 func getFirstPage() []hnLink {
@@ -99,6 +101,7 @@ func getStory(pageID int) (*hnLink, error) {
 		title: title,
 		time:  time,
 		url:   url,
+		guid:  fmt.Sprintf(hnPageURL, pageID),
 	}
 
 	return &result, nil
