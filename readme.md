@@ -1,4 +1,4 @@
-#HN To RSS
+# HN To RSS
 
 HN To RSS is an intentionally simple rss feed of the front page of HackerNews. It returns only story links from the first page - no comments, no Ask HN, nothing else.
 
