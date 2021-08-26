@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 )
 
 func hn(w http.ResponseWriter, req *http.Request) {
@@ -24,11 +23,7 @@ func hn(w http.ResponseWriter, req *http.Request) {
 func main() {
 	http.HandleFunc("/", hn)
 
-	listenPort := os.Getenv("HN_LISTEN_PORT")
-
-	if listenPort == "" {
-		log.Fatal("Environment variable HN_LISTEN_PORT must be set")
-	}
+	listenPort := "80"
 
 	http.ListenAndServe(fmt.Sprintf(":%s", listenPort), nil)
 }
