@@ -94,6 +94,10 @@ func getStory(pageID int) (*hnLink, error) {
 
 	var url string
 	json.Unmarshal(pageMap["url"], &url)
+
+   if len(url) == 0 {
+      return nil, errors.New("No link in story post. Could be Launch HN")
+   }
 	var time int
 	json.Unmarshal(pageMap["time"], &time)
 
