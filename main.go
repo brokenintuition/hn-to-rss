@@ -9,21 +9,24 @@ import (
 func hn(w http.ResponseWriter, req *http.Request) {
 	log.Println("Request received")
 
-	fetchedPages := getFirstPage()
-	rssFeed, err := RssFromHNItems(fetchedPages)
-
+	fetchedPages, err := getFirstPage()
 	if err != nil {
-		log.Printf("Error processing request: %s\n", err.Error())
+		log.Printf("Error processing request: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	fmt.Fprintf(w, string(rssFeed))
+	rssFeed, err := RssFromHNItems(fetchedPages)
+	if err != nil {
+		log.Printf("Error processing request: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprint(w, string(rssFeed))
 }
 
 func main() {
 	http.HandleFunc("/", hn)
-
-	listenPort := "80"
-
-	http.ListenAndServe(fmt.Sprintf(":%s", listenPort), nil)
+	http.ListenAndServe(":80", nil)
 }
