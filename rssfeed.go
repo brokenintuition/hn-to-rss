@@ -19,7 +19,7 @@ type Channel struct {
 }
 
 type Item struct {
-	Title string `xml:"title"'`
+	Title string `xml:"title"`
 	Link  string `xml:"link"`
 	Guid  string `xml:"guid"`
 }
