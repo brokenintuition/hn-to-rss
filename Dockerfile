@@ -1,4 +1,4 @@
-FROM golang:alpine AS build_step
+FROM golang:1.18.1-bullseye AS build_step
 ADD . /src
 RUN cd /src && go build -o hn-to-rss
 
