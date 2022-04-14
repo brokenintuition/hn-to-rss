@@ -2,16 +2,20 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
-const hnTopStories = "https://hacker-news.firebaseio.com/v0/topstories.json"
-const hnStoryURL = "https://hacker-news.firebaseio.com/v0/item/%d.json"
-const hnPageURL = "https://news.ycombinator.com/item?id=%d"
-const hnPageSize = 30
+const (
+	hnApiBase  = "https://hacker-news.firebaseio.com/v0/"
+	hnPageURL  = "https://news.ycombinator.com/item?id=%d"
+	hnPageSize = 30
+)
+
+var (
+	emptyLink = hnLink{}
+)
 
 type hnLink struct {
 	title string
@@ -20,8 +24,16 @@ type hnLink struct {
 	guid  string
 }
 
+// storyResponse is the pieces of the story json that need to be exposed for rss
+type storyResponse struct {
+	Type  string
+	Title string
+	Url   string
+	Time  int
+}
+
 func getFirstPage() ([]hnLink, error) {
-	resp, err := http.Get(hnTopStories)
+	resp, err := http.Get(hnApiBase + "topstories.json")
 	if err != nil {
 		return nil, err
 	}
@@ -40,12 +52,14 @@ func getFirstPage() ([]hnLink, error) {
 
 	var result []hnLink
 	for _, page := range pages[:hnPageSize] {
-		pageDetails, err := getStory(page)
+		storyLink, err := getStory(page)
 		if err != nil {
 			return nil, fmt.Errorf("processing page %d: %w", page, err)
 		}
 
-		result = append(result, pageDetails)
+		if storyLink != emptyLink {
+			result = append(result, storyLink)
+		}
 	}
 
 	return result, nil
@@ -53,7 +67,7 @@ func getFirstPage() ([]hnLink, error) {
 
 func getStory(pageID int) (hnLink, error) {
 	var result hnLink
-	resp, err := http.Get(fmt.Sprintf(hnStoryURL, pageID))
+	resp, err := http.Get(fmt.Sprintf("%s/item/%d.json", hnApiBase, pageID))
 	if err != nil {
 		return result, err
 	}
@@ -63,34 +77,21 @@ func getStory(pageID int) (hnLink, error) {
 		return result, err
 	}
 
-	// unmarshalling to map because I don't care about most of the fields in the response
-	// todo: repplace this because I don't need to specify the whole response
-	var pageMap map[string]json.RawMessage
-	json.Unmarshal(body, &pageMap)
-
-	var pageType string
-	json.Unmarshal(pageMap["type"], &pageType)
-
-	if pageType != "story" {
-		return result, errors.New("cannot process non-story post")
+	var story storyResponse
+	err = json.Unmarshal(body, &story)
+	if err != nil {
+		return result, err
 	}
 
-	var title string
-	json.Unmarshal(pageMap["title"], &title)
-
-	var url string
-	json.Unmarshal(pageMap["url"], &url)
-	if len(url) == 0 {
-		return result, errors.New("no link in story post. Could be Launch HN")
+	// skip non-story posts and posts with no URL (usually Launch HN)
+	if story.Type != "story" || len(story.Url) == 0 {
+		return result, nil
 	}
-
-	var time int
-	json.Unmarshal(pageMap["time"], &time)
 
 	result = hnLink{
-		title: title,
-		time:  time,
-		url:   url,
+		title: story.Title,
+		time:  story.Time,
+		url:   story.Url,
 		guid:  fmt.Sprintf(hnPageURL, pageID),
 	}
 
