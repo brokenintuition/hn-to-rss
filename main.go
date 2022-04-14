@@ -28,5 +28,8 @@ func hn(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 	http.HandleFunc("/", hn)
-	http.ListenAndServe(":80", nil)
+	err := http.ListenAndServe(":80", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
